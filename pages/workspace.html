@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskTrace | Dashboard</title>
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="TaskTrace | Professional Project Tracking">
+    <meta name="description"
+        content="A premium real-time project management dashboard with a modern glassmorphism design. Track tasks and manage teams with ease.">
+    <meta name="theme-color" content="#030712">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="min-h-screen overflow-x-hidden">
+
+    <!-- Global Progress Bar -->
+    <div id="global-progress-container" class="fixed top-0 left-0 right-0 h-1 z-[60] bg-white/5">
+        <div id="global-progress-fill"
+            class="h-full bg-gradient-to-r from-purple-500 via-cyan-500 to-emerald-500 progress-bar-fill shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+            style="width: 0%"></div>
+    </div>
+
+    <!-- Shared components injected via common.js -->
+
+
+    <div class="relative w-full overflow-hidden pt-32">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="view-transition view-visible min-h-screen flex flex-col pb-12">
+            <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 mt-10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 space-y-4 md:space-y-0">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <div id="connection-status"
+                                class="flex items-center space-x-2 text-[9px] font-black tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Realtime Live</span>
+                            </div>
+                            <div
+                                class="text-[9px] uppercase font-black tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
+                                <span id="done-count">0</span> done
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6">
+                            <h2 class="text-4xl font-black tracking-tight" id="dashboard-title">Overview</h2>
+
+                            <!-- Sprint Selector -->
+                            <div class="custom-dropdown relative" id="sprint-selector-dropdown">
+                                <div class="dropdown-trigger bg-white/5 border border-white/10 px-6 py-3 rounded-2xl flex items-center space-x-3 cursor-pointer hover:bg-white/10 transition-all active:scale-95 shadow-lg"
+                                    onclick="toggleSprintDropdown(event)">
+                                    <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+                                    <span id="selected-sprint-text"
+                                        class="text-xs font-black uppercase tracking-widest text-cyan-400">Select
+                                        Sprint</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 opacity-40"></i>
+                                </div>
+                                <div id="sprint-menu" class="dropdown-menu !top-full !mt-2 w-48">
+                                    <!-- Sprints injected here -->
+                                </div>
+                            </div>
+
+                            <!-- Add Sprint Button -->
+                            <button onclick="openGenericModal('sprint')"
+                                class="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all active:scale-95 shadow-lg shadow-cyan-500/5 group"
+                                title="Add New Sprint">
+                                <i data-lucide="plus"
+                                    class="w-5 h-5 group-hover:rotate-90 transition-transform duration-500"></i>
+                            </button>
+                        </div>
+                        <p id="dashboard-subtitle" class="text-gray-500 mt-1 font-medium">Manage project tasks</p>
+                    </div>
+
+                    <div class="flex items-center space-x-12">
+                        <!-- Progress Area (Middle Right) -->
+                        <div class="hidden md:block w-48 lg:w-64">
+                            <div
+                                class="flex justify-between items-center mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                <span>Project Progress</span>
+                                <span id="progress-percent-text" class="text-accent-purple">0%</span>
+                            </div>
+                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden p-0.5">
+                                <div id="inner-progress-fill"
+                                    class="h-full bg-accent-purple rounded-full shadow-[0_0_8px_rgba(168,85,247,0.4)] transition-all duration-1000"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+
+
+                        <!-- Action Button (Far Right) -->
+                        <button onclick="openGenericModal('task')"
+                            class="group flex items-center space-x-3 px-8 py-4 bg-accent-purple hover:bg-purple-600 rounded-2xl transition-all duration-300 shadow-xl shadow-purple-500/25 active:scale-95">
+                            <i data-lucide="plus" class="w-5 h-5 text-white"></i>
+                            <span class="text-xs font-black uppercase tracking-widest text-white">Add Mission</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="task-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
+                    <!-- Tasks injected here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <!-- Shared components injected via common.js -->
+
+
+    <!-- Scripts -->
+    <script src="../js/firebase-app.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+
+</html>

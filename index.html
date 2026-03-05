@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskTrace | Professional Project Tracking</title>
+
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="TaskTrace | Professional Project Tracking">
+  <meta name="description"
+    content="A premium real-time project management dashboard with a modern glassmorphism design. Track tasks and manage teams with ease.">
+  <meta name="theme-color" content="#030712">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- Firebase SDK (Compat Version) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="min-h-screen overflow-x-hidden">
+  <!-- Shared components (Overlay, Nav, Footer, Modals) injected via common.js -->
+
+  <div class="relative w-full overflow-hidden pt-32">
+    <!-- Project Selection View -->
+    <div id="project-view" class="view-transition view-visible flex flex-col items-center min-h-[50vh] p-6 pb-20">
+      <!-- Header Row -->
+      <div
+        class="w-full max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between mb-12 px-4 sm:px-6 gap-6">
+        <div class="text-left">
+          <h2 class="text-5xl font-black tracking-tighter mb-2">Projects</h2>
+          <p class="text-gray-500 font-medium italic">Select a workspace to begin tracking missions</p>
+        </div>
+
+        <button onclick="openGenericModal('project')"
+          class="group flex items-center space-x-3 px-8 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 shadow-xl shadow-black/20">
+          <div
+            class="w-6 h-6 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500 group-hover:scale-110 transition-transform">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+          </div>
+          <span class="font-black uppercase tracking-widest text-[10px]">Initiate New Project</span>
+        </button>
+      </div>
+
+      <div id="project-grid"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl mx-auto px-4 sm:px-6 items-stretch">
+        <!-- Projects injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared components injected via common.js -->
+
+  <!-- Scripts -->
+  <script src="js/firebase-app.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/projects.js"></script>
+</body>
+
+</html>

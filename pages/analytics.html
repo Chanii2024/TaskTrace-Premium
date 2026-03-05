@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskTrace | Sprint Analytics</title>
+
+    <meta name="title" content="TaskTrace | Premium Analytics">
+    <meta name="description" content="Detailed sprint performance tracking and data visualization.">
+    <meta name="theme-color" content="#030712">
+
+    <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="min-h-screen overflow-x-hidden pt-32 pb-20 px-6">
+
+    <div class="max-w-6xl mx-auto animate-fadeIn">
+
+        <!-- Header Navigation -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+            <div class="text-left">
+                <button onclick="backToTeam()"
+                    class="group flex items-center space-x-3 px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all mb-6">
+                    <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Back to Team</span>
+                </button>
+                <h1 class="text-6xl font-black tracking-tighter mb-4" id="project-title">Project Analytics</h1>
+                <p class="text-gray-500 font-medium italic text-lg max-w-2xl" id="project-desc">Track member performance
+                    and sprint velocity across the entire project lifecycle.</p>
+            </div>
+
+            <div class="flex flex-col items-start md:items-end gap-3 min-w-[240px]">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">Current
+                    Focus</label>
+                <div class="relative w-full">
+                    <select id="sprint-selector" onchange="updateAnalytics()"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-accent-purple transition-all font-black uppercase text-xs tracking-[0.1em] appearance-none cursor-pointer pr-12">
+                        <!-- Sprints injected here -->
+                    </select>
+                    <i data-lucide="chevron-down"
+                        class="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- High Level Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="glass p-10 rounded-[40px] border border-white/5 relative overflow-hidden group">
+                <div
+                    class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all duration-700">
+                </div>
+                <div class="space-y-2">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Total Missions</span>
+                    <div class="text-5xl font-black tracking-tighter" id="stat-total">0</div>
+                </div>
+            </div>
+
+            <div class="glass p-10 rounded-[40px] border border-white/5 relative overflow-hidden group">
+                <div
+                    class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700">
+                </div>
+                <div class="space-y-2">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/60">Completed
+                        Missions</span>
+                    <div class="text-5xl font-black tracking-tighter text-emerald-500" id="stat-done">0</div>
+                </div>
+            </div>
+
+            <div class="glass p-10 rounded-[40px] border border-white/5 relative overflow-hidden group">
+                <div
+                    class="absolute -right-4 -top-4 w-24 h-24 bg-accent-purple/5 rounded-full blur-3xl group-hover:bg-accent-purple/10 transition-all duration-700">
+                </div>
+                <div class="space-y-2">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-accent-purple/60">Overall
+                        Velocity</span>
+                    <div class="text-5xl font-black tracking-tighter text-accent-purple" id="stat-velocity">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Visualization Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+
+            <!-- Detailed Performance Chart -->
+            <div class="lg:col-span-2 glass p-10 rounded-[48px] border border-white/5 flex flex-col min-h-[500px]">
+                <div class="flex items-center justify-between mb-12">
+                    <div class="flex items-center space-x-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                            <i data-lucide="bar-chart-3" class="w-6 h-6 text-accent-purple"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black tracking-tight uppercase tracking-[0.05em]">Mission Velocity
+                            </h3>
+                            <p class="text-xs font-bold text-gray-600 mt-1 uppercase tracking-widest">Daily Activity
+                                Volume (Peaks = High Productivity)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-grow relative min-h-[400px]">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Status Distribution & Insights -->
+            <div class="lg:col-span-1 flex flex-col gap-8">
+
+                <div class="glass p-10 rounded-[48px] border border-white/5 flex-grow">
+                    <h3 class="text-xl font-black uppercase tracking-widest mb-10 text-gray-400">Team Progress</h3>
+                    <div id="status-distribution" class="space-y-4">
+                        <!-- Progress bars for statuses injected here -->
+                    </div>
+                </div>
+
+                <div class="glass p-10 rounded-[48px] border border-white/5 relative overflow-hidden">
+                    <div class="flex items-start justify-between mb-6">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                            <i data-lucide="zap" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-black tracking-tighter mb-2">Sprint Health</h4>
+                    <p class="text-xs font-medium text-gray-500 leading-relaxed" id="sprint-health-insight">Loading
+                        Sprint data for mission health insights...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-app.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/analytics.js"></script>
+</body>
+
+</html>

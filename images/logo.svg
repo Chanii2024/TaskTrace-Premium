@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#a855f7" />
+            <stop offset="100%" stop-color="#06b6d4" />
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="15" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+    </defs>
+    
+    <!-- Background Shape -->
+    <rect width="512" height="512" rx="128" fill="#030712" />
+    
+    <!-- Stylized 'T' with Trace Element -->
+    <g filter="url(#glow)">
+        <!-- Horizontal Bar -->
+        <path d="M140 180H372C388.569 180 402 193.431 402 210V210C402 226.569 388.569 240 372 240H140C123.431 240 110 226.569 110 210V210C110 193.431 123.431 180 140 180Z" fill="url(#logo-gradient)" />
+        
+        <!-- Vertical Bar -->
+        <path d="M226 210V372C226 388.569 239.431 402 256 402V402C272.569 402 286 388.569 286 372V210" stroke="url(#logo-gradient)" stroke-width="60" stroke-linecap="round" />
+        
+        <!-- Trace Line Detail -->
+        <path d="M160 300L210 350L350 210" stroke="white" stroke-width="25" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.8" />
+    </g>
+</svg>
