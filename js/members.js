@@ -68,12 +68,24 @@ function renderMembers() {
     keys.forEach(id => {
         const m = currentMembers[id];
         if (!m) return;
+        const colorFrom = m.colorFrom || '#a855f7';
+        const colorTo = m.colorTo || '#7e22ce';
+
         const card = document.createElement('div');
-        card.className = "glass p-6 md:p-8 rounded-2xl md:rounded-[32px] flex flex-col items-center h-full hover-card transition-all duration-500 cursor-pointer group";
+        card.className = "glass p-6 md:p-8 rounded-2xl md:rounded-[32px] flex flex-col items-center h-full hover-card transition-all duration-500 cursor-pointer group relative overflow-hidden";
         card.onclick = () => selectMember(id, m.name);
         card.innerHTML = `
-            <div class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center mb-4 md:mb-5 group-hover:bg-accent-purple/20 transition-all">
-                <i data-lucide="user" class="w-6 md:w-8 h-6 md:h-8 text-gray-400 group-hover:text-accent-purple"></i>
+            <div class="absolute top-4 right-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="event.stopPropagation(); openGenericModal('member', '${id}')" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-cyan-400 transition-all">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+                <button onclick="event.stopPropagation(); deleteMember('${id}')" class="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-all">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center mb-4 md:mb-5 group-hover:opacity-100 transition-all relative">
+                <div class="absolute inset-0 rounded-xl md:rounded-2xl opacity-10 group-hover:opacity-20 transition-opacity" style="background: linear-gradient(135deg, ${colorFrom}, ${colorTo})"></div>
+                <i data-lucide="user" class="w-6 md:w-8 h-6 md:h-8 transition-colors relative z-10" style="color: ${colorFrom}"></i>
             </div>
             <h3 class="text-lg md:text-xl font-bold">${m.name}</h3>
             <p class="text-[8px] md:text-[9px] uppercase font-black tracking-widest text-gray-500 mt-1">${m.role}</p>
@@ -87,6 +99,14 @@ function selectMember(id, name) {
     localStorage.setItem('tt_member', id);
     localStorage.setItem('tt_member_name', name || 'Global Overview');
     window.location.href = "workspace.html";
+}
+
+function deleteMember(id) {
+    requestSecurityAuth(() => {
+        database.ref(`projects/${selectedProjId}/members/${id}`).remove()
+            .then(() => showNotification("Member removed", true))
+            .catch(err => showNotification("Error removing member: " + err.message, true));
+    });
 }
 
 

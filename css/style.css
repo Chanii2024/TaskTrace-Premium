@@ -58,6 +58,21 @@ body {
     color: #e0e7ff;
 }
 
+/* Smooth Status Transitions */
+.status-not-started, .status-in-progress, .status-almost-done, .status-done, .status-in-review {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-pop {
+    animation: statusPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes statusPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
 .hover-card:hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 0 20px 40px -10px rgba(168, 85, 247, 0.25);

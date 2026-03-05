@@ -18,14 +18,11 @@ const statusMap = {
 };
 
 let iconList = [
-    'layers', 'briefcase', 'code', 'layout', 'database', 'user', 'users', 'settings', 'check-circle',
-    'terminal', 'cpu', 'globe', 'zap', 'star', 'heart', 'flag', 'shield', 'map', 'camera', 'music',
-    'video', 'shopping-cart', 'box', 'package', 'activity', 'anchor', 'award', 'book', 'bookmark',
-    'calendar', 'cloud', 'coffee', 'command', 'compass', 'credit-card', 'feather', 'file-text', 'gift',
-    'hard-drive', 'image', 'key', 'link', 'mail', 'monitor', 'moon', 'navigation', 'paperclip',
-    'pie-chart', 'printer', 'rocket', 'search', 'send', 'share-2', 'smile', 'speaker', 'sun',
-    'sunrise', 'sunset', 'tablet', 'tag', 'target', 'thermometer', 'thumbs-up', 'tool', 'truck',
-    'umbrella', 'unlock', 'watch', 'wifi', 'wind', 'sprout', 'leaf', 'tree', 'flower', 'flower-2'
+    'layers', 'briefcase', 'code', 'layout', 'database', 'user', 'users', 'settings', 'terminal', 'cpu',
+    'globe', 'zap', 'activity', 'chart-bar', 'folder', 'calendar', 'clipboard-list', 'cloud', 'shield', 'rocket',
+    'check-circle', 'star', 'heart', 'flag', 'map', 'camera', 'video', 'music', 'shopping-cart', 'package',
+    'box', 'truck', 'wrench', 'anchor', 'award', 'book', 'bookmark', 'coffee', 'command', 'compass',
+    'credit-card', 'feather', 'file-text', 'gift', 'hard-drive', 'image', 'key', 'link', 'mail', 'monitor'
 ];
 
 function updateIconCount() {
@@ -42,10 +39,6 @@ function refreshIcons() {
 // Initializer
 function startCommon() {
     injectSharedUI();
-    if (window.lucide && window.lucide.icons) {
-        const allIcons = Object.keys(window.lucide.icons);
-        if (allIcons.length > 0) iconList = allIcons;
-    }
     updateIconCount();
 }
 
@@ -132,16 +125,40 @@ function requestSecurityAuth(callback) {
 
     modal.classList.remove('hidden');
     const tokenInput = document.getElementById('security-token');
+    const title = modal.querySelector('h3');
+    const sub = modal.querySelector('p');
+
+    // Step 1: Password
+    title.innerText = "Security Auth";
+    sub.innerText = "Enter security password";
+    tokenInput.placeholder = "PASSWORD";
+    tokenInput.type = "password";
     tokenInput.value = '';
     tokenInput.focus();
 
+    let isPasswordDone = false;
+
     const handleConfirm = () => {
-        const token = tokenInput.value.trim().toLowerCase();
-        if (token === 'delete') {
-            closeSecurityModal();
-            if (securityCallback) securityCallback();
+        const val = tokenInput.value.trim().toLowerCase();
+
+        if (!isPasswordDone) {
+            if (val === 'delete-force') {
+                isPasswordDone = true;
+                tokenInput.value = '';
+                tokenInput.type = "text";
+                tokenInput.placeholder = "TOKEN";
+                sub.innerText = "Type 'delete' to confirm";
+                tokenInput.focus();
+            } else {
+                showNotification("Invalid Security Password", true);
+            }
         } else {
-            showNotification("Invalid Security Token", true);
+            if (val === 'delete') {
+                closeSecurityModal();
+                if (securityCallback) securityCallback();
+            } else {
+                showNotification("Type 'delete' to confirm", true);
+            }
         }
     };
 
@@ -153,7 +170,11 @@ function requestSecurityAuth(callback) {
 
 function closeSecurityModal() {
     const modal = document.getElementById('security-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        // Reset type for next open
+        document.getElementById('security-token').type = "text";
+    }
 }
 
 // Generic Modal (close function is shared)
@@ -249,8 +270,8 @@ function injectSharedUI() {
                     </div>
                     <input type="text" id="security-token" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-red-500 transition-all font-mono text-center tracking-widest" placeholder="TOKEN">
                     <div class="flex w-full space-x-3">
-                        <button onclick="closeSecurityModal()" class="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold hover:bg-white/10 transition-all">Cancel</button>
-                        <button id="security-confirm-btn" class="flex-1 py-4 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all shadow-lg shadow-red-500/20">Authorize</button>
+                        <button onclick="closeSecurityModal()" class="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest">Cancel</button>
+                        <button id="security-confirm-btn" class="flex-1 py-4 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all shadow-lg shadow-red-500/20 uppercase text-[10px] tracking-widest">Authorize</button>
                     </div>
                 </div>
             </div>
@@ -339,16 +360,17 @@ function injectSharedUI() {
                         <div>
                             <div class="flex items-center justify-between mb-2 ml-1">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Project Icon</label>
-                                <span id="icon-count-badge" class="text-[9px] font-black text-accent-purple bg-accent-purple/10 px-2 py-0.5 rounded-md uppercase tracking-tighter">0 Available</span>
                             </div>
                             <div class="relative group/picker">
                                 <div class="flex items-center space-x-4 mb-4">
                                     <div id="p-icon-preview" class="w-14 h-14 rounded-2xl bg-accent-purple/20 flex items-center justify-center border border-accent-purple/30">
                                         <i data-lucide="layers" class="w-7 h-7 text-accent-purple"></i>
                                     </div>
-                                    <input type="text" id="icon-search" oninput="filterIcons(this.value)" class="flex-grow bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-accent-purple transition-all font-medium text-sm" placeholder="Search icons...">
+                                    <div class="flex-grow">
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic">Choose a symbol that represents your workspace</p>
+                                    </div>
                                 </div>
-                                <div id="icon-grid" class="grid grid-cols-6 gap-3 h-40 overflow-y-auto p-4 bg-gray-900/50 rounded-2xl border border-white/5 custom-scrollbar"></div>
+                                <div id="icon-grid" class="grid grid-cols-5 gap-3 h-48 overflow-y-auto p-4 bg-gray-900/50 rounded-2xl border border-white/5 custom-scrollbar"></div>
                                 <input type="hidden" id="p-icon" value="layers">
                             </div>
                         </div>
@@ -365,17 +387,30 @@ function injectSharedUI() {
                         </div>
                     </form>
 
-                    <!-- Member Form -->
                     <form id="member-form" class="hidden space-y-6" onsubmit="handleMemberSubmit(event)">
+                        <input type="hidden" id="m-id">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Member Name</label>
                             <input type="text" id="m-name" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-accent-purple transition-all font-medium" placeholder="E.g. Chaniru">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Role / Designation</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Member Role</label>
                             <input type="text" id="m-role" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-accent-purple transition-all font-medium" placeholder="E.g. Lead Designer">
                         </div>
-                        <button type="submit" class="w-full py-5 bg-accent-purple hover:bg-purple-600 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-purple-500/20 text-white">Add Member</button>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Theme Color</label>
+                            <div class="flex flex-wrap gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <div class="member-color-option w-10 h-10 rounded-xl cursor-pointer transition-all border-2 border-transparent hover:scale-110" style="background: linear-gradient(135deg, #a855f7, #7e22ce)" onclick="selectMemberColor('#a855f7', '#7e22ce')" data-color="#a855f7"></div>
+                                <div class="member-color-option w-10 h-10 rounded-xl cursor-pointer transition-all border-2 border-transparent hover:scale-110" style="background: linear-gradient(135deg, #06b6d4, #0e7490)" onclick="selectMemberColor('#06b6d4', '#0e7490')" data-color="#06b6d4"></div>
+                                <div class="member-color-option w-10 h-10 rounded-xl cursor-pointer transition-all border-2 border-transparent hover:scale-110" style="background: linear-gradient(135deg, #10b981, #047857)" onclick="selectMemberColor('#10b981', '#047857')" data-color="#10b981"></div>
+                                <div class="member-color-option w-10 h-10 rounded-xl cursor-pointer transition-all border-2 border-transparent hover:scale-110" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8)" onclick="selectMemberColor('#3b82f6', '#1d4ed8')" data-color="#3b82f6"></div>
+                                <div class="member-color-option w-10 h-10 rounded-xl cursor-pointer transition-all border-2 border-transparent hover:scale-110" style="background: linear-gradient(135deg, #f59e0b, #d97706)" onclick="selectMemberColor('#f59e0b', '#d97706')" data-color="#f59e0b"></div>
+                                <div class="member-color-option w-10 h-10 rounded-xl cursor-pointer transition-all border-2 border-transparent hover:scale-110" style="background: linear-gradient(135deg, #ef4444, #dc2626)" onclick="selectMemberColor('#ef4444', '#dc2626')" data-color="#ef4444"></div>
+                                <input type="hidden" id="m-color-from" value="#a855f7">
+                                <input type="hidden" id="m-color-to" value="#7e22ce">
+                            </div>
+                        </div>
+                        <button type="submit" id="member-submit-btn" class="w-full py-5 bg-accent-purple hover:bg-purple-600 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-purple-500/20 text-white">Action</button>
                     </form>
 
                     <!-- Sprint Form -->
@@ -744,24 +779,41 @@ function handleProjectSubmit(e) {
 }
 function handleMemberSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('m-id').value;
     const name = document.getElementById('m-name').value.trim();
     const role = document.getElementById('m-role').value.trim();
+    const colorFrom = document.getElementById('m-color-from').value;
+    const colorTo = document.getElementById('m-color-to').value;
 
     if (!name || !role) {
         showNotification("Please provide both name and role", true);
         return;
     }
 
-    database.ref(`projects/${selectedProjId}/members`).push({
+    const data = {
         name: name,
         role: role,
-        createdAt: firebase.database.ServerValue.TIMESTAMP
-    })
-        .then(() => {
-            closeGenericModal();
-            showNotification(`Welcome to the team, ${name}!`);
-        })
-        .catch(err => showNotification("Error adding member: " + err.message, true));
+        colorFrom: colorFrom,
+        colorTo: colorTo,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    if (id) {
+        database.ref(`projects/${selectedProjId}/members/${id}`).update(data)
+            .then(() => {
+                closeGenericModal();
+                showNotification(`Updated details for ${name}`);
+            })
+            .catch(err => showNotification("Error updating member: " + err.message, true));
+    } else {
+        data.createdAt = firebase.database.ServerValue.TIMESTAMP;
+        database.ref(`projects/${selectedProjId}/members`).push(data)
+            .then(() => {
+                closeGenericModal();
+                showNotification(`Welcome to the team, ${name}!`);
+            })
+            .catch(err => showNotification("Error adding member: " + err.message, true));
+    }
 }
 
 function handleSprintSubmit(e) {
@@ -936,9 +988,24 @@ function openGenericModal(type, extra = null) {
         }
     } else if (type === 'member') {
         if (memberForm) memberForm.classList.remove('hidden');
-        title.innerText = "Add Team Member";
-        const projName = allProjects[selectedProjId] ? allProjects[selectedProjId].name : 'Project';
-        sub.innerText = `Adding to ${projName}`;
+        if (extra) {
+            const m = currentMembers[extra];
+            title.innerText = "Edit Member";
+            sub.innerText = `Updating profile`;
+            document.getElementById('m-id').value = extra;
+            document.getElementById('m-name').value = m.name;
+            document.getElementById('m-role').value = m.role;
+            selectMemberColor(m.colorFrom || '#a855f7', m.colorTo || '#7e22ce');
+            document.getElementById('member-submit-btn').innerText = "Update Member";
+        } else {
+            title.innerText = "Add Team Member";
+            const projName = (allProjects[selectedProjId] && allProjects[selectedProjId].name) || 'Project';
+            sub.innerText = `Adding to ${projName}`;
+            memberForm.reset();
+            document.getElementById('m-id').value = '';
+            selectMemberColor('#a855f7', '#7e22ce');
+            document.getElementById('member-submit-btn').innerText = "Add Member";
+        }
     } else if (type === 'sprint') {
         if (sprintForm) sprintForm.classList.remove('hidden');
         const nameContainer = document.getElementById('s-name-container');
@@ -1009,13 +1076,28 @@ function openGenericModal(type, extra = null) {
     refreshIcons();
 
     setTimeout(() => {
-        const firstInput = document.querySelector(`#${type}-form input[not-hidden]:not([type="hidden"])`);
-        const sNameInput = document.getElementById('s-name');
-
-        if (type === 'sprint' && sNameInput) {
-            sNameInput.focus();
-        } else if (firstInput) {
-            firstInput.focus();
-        }
+        const firstInput = document.querySelector(`#${type}-form input[type="text"]:not([readonly])`);
+        if (firstInput) firstInput.focus();
     }, 200);
+}
+
+function selectMemberColor(from, to) {
+    const fromInput = document.getElementById('m-color-from');
+    const toInput = document.getElementById('m-color-to');
+    if (!fromInput || !toInput) return;
+
+    fromInput.value = from;
+    toInput.value = to;
+
+    const allOptions = document.querySelectorAll('.member-color-option');
+    allOptions.forEach(opt => {
+        const optColor = opt.getAttribute('data-color');
+        if (optColor === from) {
+            opt.classList.add('border-white', 'scale-110');
+            opt.classList.remove('border-transparent');
+        } else {
+            opt.classList.remove('border-white', 'scale-110');
+            opt.classList.add('border-transparent');
+        }
+    });
 }

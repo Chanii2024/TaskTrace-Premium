@@ -20,6 +20,7 @@ function initProjectsApp() {
         if (loadingText) loadingText.innerText = "Loading Projects...";
         allProjects = snap.val() || {};
         renderProjects();
+        filterIcons(''); // Initialize icon grid
         hideLoader();
     });
 }
@@ -81,6 +82,26 @@ function selectProject(id, name) {
 }
 
 function deleteProject(id) {
+    const p = allProjects[id];
+    if (!p) return;
+
+    // 1. Task Overload Check (More than 10 tasks)
+    const taskCount = Object.keys(p.tasks || {}).length;
+    if (taskCount > 10) {
+        showNotification(`Large projects can't be deleted (${taskCount} tasks)`, true);
+        return;
+    }
+
+    // 2. Project Age Check (Older than 4 days)
+    const now = Date.now();
+    const ageInMs = now - (p.createdAt || p.updatedAt || now);
+    const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+
+    if (ageInDays > 4) {
+        showNotification("Established projects can't be deleted (Older than 4 days)", true);
+        return;
+    }
+
     requestSecurityAuth(() => {
         database.ref(`projects/${id}`).remove()
             .then(() => showNotification("Project removed", true))
@@ -98,10 +119,16 @@ function filterIcons(query) {
     filtered.forEach(iconName => {
         const btn = document.createElement('div');
         btn.className = "flex items-center justify-center p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-all border border-transparent hover:border-white/10";
+        btn.setAttribute('data-icon', iconName);
         btn.onclick = () => selectIcon(iconName);
         btn.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 text-gray-400"></i>`;
         grid.appendChild(btn);
     });
+
+    // Highlight currently selected icon
+    const currentIcon = document.getElementById('p-icon')?.value;
+    if (currentIcon) selectIcon(currentIcon);
+
     refreshIcons();
 }
 
@@ -113,7 +140,12 @@ function selectIcon(iconName) {
     if (preview) preview.innerHTML = `<i data-lucide="${iconName}" class="w-7 h-7 text-accent-purple"></i>`;
 
     const allBtns = document.querySelectorAll('#icon-grid > div');
-    allBtns.forEach(btn => btn.classList.remove('bg-accent-purple/10', 'border-accent-purple/30'));
+    allBtns.forEach(btn => {
+        btn.classList.remove('bg-accent-purple/10', 'border-accent-purple/30');
+        if (btn.getAttribute('data-icon') === iconName) {
+            btn.classList.add('bg-accent-purple/10', 'border-accent-purple/30');
+        }
+    });
     refreshIcons();
 }
 
