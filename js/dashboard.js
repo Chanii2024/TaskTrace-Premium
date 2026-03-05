@@ -47,6 +47,9 @@ function initDashboardApp() {
     database.ref(`projects/${selectedProjId}/tasks`).on('value', snap => {
         currentTasks = snap.val() || {};
         updateSprintDropdown(); // Refresh sprint list if tasks change
+        if (typeof updateTaskModalSprintDropdown === 'function') {
+            updateTaskModalSprintDropdown();
+        }
         debouncedRender();
         updateProgressBar();
         hideLoader(); // Data has arrived
@@ -182,55 +185,54 @@ function renderTasks() {
 
         const status = statusMap[t.status] || statusMap['NotStarted'];
         const card = document.createElement('div');
-        card.className = "glass p-8 rounded-[32px] flex flex-col h-full space-y-5 hover:bg-white/[0.03] transition-all duration-500 group animate-fadeIn";
+        card.className = "glass p-5 md:p-8 rounded-2xl md:rounded-[32px] flex flex-col h-full space-y-4 md:space-y-5 hover:bg-white/[0.03] transition-all duration-500 group animate-fadeIn relative border border-white/5";
         card.innerHTML = `
-            <div class="flex items-center justify-between space-x-4 mb-4">
-                <h4 class="text-xl font-black tracking-tight leading-tight line-clamp-2">${t.title}</h4>
+            <div class="flex items-start justify-between space-x-3 md:space-x-4 mb-2 md:mb-4">
+                <h4 class="text-base md:text-xl font-black tracking-tight leading-tight line-clamp-2 transition-colors group-hover:text-white">${t.title}</h4>
                 <div class="custom-dropdown flex-shrink-0" id="dropdown-${id}">
-                    <div class="dropdown-trigger ${status.class}" onclick="toggleDropdown(event, '${id}')">
-                        <span>${status.label}</span>
-                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-60 transition-transform duration-300"></i>
+                    <div class="dropdown-trigger !px-2.5 md:!px-4 !py-1.5 md:!py-2 ${status.class} shadow-lg" onclick="toggleDropdown(event, '${id}')">
+                        <span class="text-[9px] md:text-xs font-black uppercase tracking-widest">${status.label}</span>
+                        <i data-lucide="chevron-down" class="w-3 md:w-3.5 h-3 md:h-3.5 opacity-60 transition-transform duration-300"></i>
                     </div>
                     <div class="dropdown-menu">
                         ${Object.keys(statusMap).map(s => `
                             <div class="dropdown-item ${s === t.status ? 'selected' : ''}" onclick="selectStatus('${id}', '${s}')">
                                 <div class="flex items-center">
                                     <span class="status-dot ${statusMap[s].class}"></span>
-                                    <span>${statusMap[s].label}</span>
+                                    <span class="text-[10px] md:text-xs font-bold">${statusMap[s].label}</span>
                                 </div>
-                                ${s === t.status ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+                                ${s === t.status ? '<i data-lucide="check" class="w-3 md:w-3.5 h-3 md:h-3.5"></i>' : ''}
                             </div>
                         `).join('')}
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2 content-start flex-grow">
+            <div class="flex flex-wrap gap-1.5 md:gap-2 content-start flex-grow">
                 ${(t.subTasks || []).map(st => `
-                    <div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-[10px] font-bold text-gray-400">
+                    <div class="px-2.5 md:px-3 py-1 md:py-1.5 rounded-lg bg-white/5 border border-white/5 text-[9px] md:text-[10px] font-bold text-gray-400">
                         ${st}
                     </div>
                 `).join('')}
             </div>
-            <div class="flex items-center justify-between pt-6 border-t border-white/5 mt-auto flex-shrink-0 relative">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center border border-white/10">
-                        <i data-lucide="user" class="w-4 h-4 text-slate-400"></i>
+            <div class="flex items-center justify-between pt-4 md:pt-6 border-t border-white/5 mt-auto flex-shrink-0 relative">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-slate-900 flex items-center justify-center border border-white/10 flex-shrink-0 shadow-sm">
+                        <i data-lucide="user" class="w-3.5 md:w-4 h-3.5 md:h-4 text-slate-400"></i>
                     </div>
-                    <span class="text-xs font-bold text-gray-400 tracking-tight">${currentMembers[t.assignedTo]?.name || t.assignedTo}</span>
+                    <span class="text-[10px] md:text-xs font-bold text-gray-400 tracking-tight truncate max-w-[80px] md:max-w-none">${currentMembers[t.assignedTo]?.name || t.assignedTo}</span>
                 </div>
                 
-                <!-- Sprint / Deadline info (Hides on hover) -->
-                <div class="flex items-center group-hover:opacity-0 transition-opacity duration-300">
+                <!-- Sprint / Deadline info (Hides on hover if on desktop) -->
+                <div class="flex items-center md:group-hover:opacity-0 transition-opacity duration-300">
                     ${urgencyHTML}
                 </div>
-
+ 
                 <!-- Action buttons (Shows on hover, positioned absolutely to overlap) -->
-                <div class="absolute right-0 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
-                     <button onclick="openGenericModal('task', '${id}')" class="p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-cyan-400 transition-all font-black"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                     <button onclick="deleteTask('${id}')" class="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-500 transition-all font-black"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <div class="absolute right-0 flex items-center space-x-1.5 md:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto bg-black/80 backdrop-blur-sm lg:bg-transparent p-1 rounded-lg">
+                     <button onclick="openGenericModal('task', '${id}')" class="p-1.5 md:p-2 rounded-lg hover:bg-white/10 text-gray-500 hover:text-cyan-400 transition-all font-black"><i data-lucide="edit-3" class="w-3.5 md:w-4 h-3.5 md:h-4"></i></button>
+                     <button onclick="deleteTask('${id}')" class="p-1.5 md:p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-500 transition-all font-black"><i data-lucide="trash-2" class="w-3.5 md:w-4 h-3.5 md:h-4"></i></button>
                 </div>
-            </div>
-        `;
+            </div>`;
         grid.appendChild(card);
     });
     refreshIcons();
@@ -255,11 +257,11 @@ function updateProgressBar() {
     const globalFill = document.getElementById('global-progress-fill');
     const innerFill = document.getElementById('inner-progress-fill');
 
-    if (globalFill) globalFill.style.width = `${pc}%`;
-    if (innerFill) innerFill.style.width = `${pc}%`;
+    if (globalFill) globalFill.style.width = `${pc}% `;
+    if (innerFill) innerFill.style.width = `${pc}% `;
 
     const percentText = document.getElementById('progress-percent-text');
-    if (percentText) percentText.innerText = `${pc}%`;
+    if (percentText) percentText.innerText = `${pc}% `;
 
     const doneCount = document.getElementById('done-count');
     if (doneCount) doneCount.innerText = done;
@@ -274,11 +276,11 @@ function updateTaskStatus(id, next) {
         renderTasks(); // Force refresh to reset dropdown state
         return;
     }
-    database.ref(`projects/${selectedProjId}/tasks/${id}`).update({
+    database.ref(`projects / ${selectedProjId} /tasks/${id} `).update({
         status: next,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
     })
-        .then(() => showNotification(`Status updated to ${statusMap[next].label}`))
+        .then(() => showNotification(`Status updated to ${statusMap[next].label} `))
         .catch(err => showNotification("Error updating task status: " + err.message, true));
 }
 
@@ -287,14 +289,14 @@ function updateTaskStatus(id, next) {
 
 function deleteTask(id) {
     requestSecurityAuth(() => {
-        database.ref(`projects/${selectedProjId}/tasks/${id}`).remove()
+        database.ref(`projects / ${selectedProjId} /tasks/${id} `).remove()
             .then(() => showNotification("Mission aborted", true));
     });
 }
 
 function selectStatus(id, next) {
     updateTaskStatus(id, next);
-    const el = document.getElementById(`dropdown-${id}`);
+    const el = document.getElementById(`dropdown - ${id} `);
     if (el) el.classList.remove('active');
 }
 
@@ -328,21 +330,21 @@ function updateSprintDropdown() {
     });
 
     let html = `
-        <div class="dropdown-item group/item ${selectedSprint === 'All' ? 'selected' : ''}" onclick="selectSprint('All')">
-            <div class="flex items-center">
-                <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover/item:bg-accent-purple/20 transition-colors">
-                    <i data-lucide="layers" class="w-3.5 h-3.5 text-gray-500 group-hover/item:text-accent-purple"></i>
+            <div class="dropdown-item group/item ${selectedSprint === 'All' ? 'selected' : ''}" onclick="selectSprint('All')">
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover/item:bg-accent-purple/20 transition-colors">
+                        <i data-lucide="layers" class="w-3.5 h-3.5 text-gray-500 group-hover/item:text-accent-purple"></i>
+                    </div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider">All</span>
                 </div>
-                <span class="text-[11px] font-bold uppercase tracking-wider">All</span>
-            </div>
             ${selectedSprint === 'All' ? '<i data-lucide="check" class="w-4 h-4 text-accent-purple"></i>' : ''}
         </div>
-        <div class="h-[1px] bg-white/5 my-2 mx-2"></div>
-    `;
+            <div class="h-[1px] bg-white/5 my-2 mx-2"></div>
+        `;
 
     sprintList.forEach(s => {
         const isNumeric = !isNaN(parseInt(s));
-        const displayLabel = isNumeric ? `Sprint ${s}` : s;
+        const displayLabel = isNumeric ? `Sprint ${s} ` : s;
 
         html += `
             <div class="dropdown-item group/item ${selectedSprint === s ? 'selected' : ''}" onclick="selectSprint('${s}')">
@@ -354,7 +356,7 @@ function updateSprintDropdown() {
                 </div>
                 ${selectedSprint === s ? '<i data-lucide="check" class="w-4 h-4 text-cyan-400"></i>' : ''}
             </div>
-        `;
+            `;
     });
 
     menu.innerHTML = html;
@@ -364,7 +366,7 @@ function updateSprintDropdown() {
         text.innerText = 'Select Sprint';
     } else {
         const isNumeric = !isNaN(parseInt(selectedSprint));
-        text.innerText = isNumeric ? `Sprint ${selectedSprint}` : selectedSprint;
+        text.innerText = isNumeric ? `Sprint ${selectedSprint} ` : selectedSprint;
     }
 
     refreshIcons();
@@ -381,55 +383,8 @@ function selectSprint(sprint) {
     updateProgressBar();
 }
 
-function updateTaskModalSprintDropdown() {
-    const label = document.getElementById('t-sprint-label');
-    const hiddenInput = document.getElementById('t-sprint');
-    const optionsGrid = document.getElementById('t-sprint-options');
-    if (!optionsGrid) return;
-
-    optionsGrid.innerHTML = '';
-
-    // Add "None" option
-    const noneItem = document.createElement('div');
-    noneItem.className = `dropdown-item ${hiddenInput.value === '' ? 'selected' : ''}`;
-    noneItem.onclick = (e) => {
-        e.stopPropagation();
-        hiddenInput.value = '';
-        label.innerText = 'Select Sprint';
-        document.getElementById('dropdown-t-sprint').classList.remove('active');
-    };
-    noneItem.innerHTML = `<span>None</span>`;
-    optionsGrid.appendChild(noneItem);
-
-    // Add defined sprints
-    Object.keys(currentSprints).sort((a, b) => {
-        const na = parseInt(a), nb = parseInt(b);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return String(a).localeCompare(String(b));
-    }).forEach(s => {
-        const item = document.createElement('div');
-        item.className = `dropdown-item ${hiddenInput.value === s ? 'selected' : ''}`;
-        item.onclick = (e) => {
-            e.stopPropagation();
-            hiddenInput.value = s;
-            label.innerText = isNaN(parseInt(s)) ? s : `Sprint ${s}`;
-            document.getElementById('dropdown-t-sprint').classList.remove('active');
-
-            // Auto-fill end date from sprint if empty
-            const dateInput = document.getElementById('t-end-date');
-            if (dateInput && !dateInput.value) {
-                dateInput.value = currentSprints[s].endDate;
-            }
-        };
-        const displayLabel = isNaN(parseInt(s)) ? s : `Sprint ${s}`;
-        item.innerHTML = `
-            <span>${displayLabel}</span>
-            <span class="text-[9px] text-gray-500 ml-auto uppercase font-bold">${currentSprints[s].endDate}</span>
-        `;
-        optionsGrid.appendChild(item);
-    });
-    refreshIcons();
-}
+// Initialized check moved to common.js if needed, or keeping it here for dashboard specific logic
+// updateTaskModalSprintDropdown removed as it is now in common.js
 
 // Close dropdowns on outside click
 document.addEventListener('click', () => {

@@ -168,7 +168,7 @@ function injectSharedUI() {
     // 0. Navigation Bar
     if (!document.querySelector('nav')) {
         const nav = document.createElement('nav');
-        nav.className = 'fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-7xl glass z-50 px-8 py-4 grid grid-cols-3 items-center pointer-events-auto rounded-[32px] border border-white/10 shadow-2xl backdrop-blur-xl transition-all duration-300';
+        nav.className = 'fixed top-4 md:top-6 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] md:w-[calc(100%-48px)] max-w-7xl glass z-50 px-4 md:px-8 py-3 md:py-4 flex md:grid md:grid-cols-3 items-center justify-between pointer-events-auto rounded-2xl md:rounded-[32px] border border-white/10 shadow-2xl backdrop-blur-xl transition-all duration-300';
         nav.innerHTML = `
             <div id="logo-container" class="flex items-center space-x-3 group cursor-pointer" onclick="backToProjects()">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-cyan-600 flex items-center justify-center group-hover:rotate-12 transition-all duration-500 shadow-xl shadow-purple-500/20">
@@ -317,8 +317,8 @@ function injectSharedUI() {
         modal.className = 'hidden fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8';
         modal.innerHTML = `
             <div class="fixed inset-0 bg-gray-950/95 backdrop-blur-md" onclick="closeGenericModal()"></div>
-            <div class="glass w-full max-w-lg rounded-[40px] relative animate-fadeIn shadow-2xl overflow-hidden flex flex-col max-h-full">
-                <div class="p-8 md:p-10 overflow-y-auto custom-scrollbar">
+            <div class="glass w-full max-w-lg rounded-3xl md:rounded-[40px] relative animate-fadeIn shadow-2xl overflow-hidden flex flex-col max-h-full">
+                <div class="p-6 md:p-10 overflow-y-auto custom-scrollbar">
                     <div class="flex items-center justify-between mb-8">
                         <div>
                             <h3 id="modal-title" class="text-2xl font-black tracking-tight">New Mission</h3>
@@ -380,9 +380,20 @@ function injectSharedUI() {
 
                     <!-- Sprint Form -->
                     <form id="sprint-form" class="hidden space-y-6" onsubmit="handleSprintSubmit(event)">
-                        <div>
+                        <div id="s-name-container">
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1 cursor-not-allowed" for="s-name">Sprint</label>
                             <input type="text" id="s-name" readonly class="w-full bg-gray-900/50 border border-white/5 rounded-2xl px-5 py-4 focus:outline-none transition-all font-medium relative z-10 text-gray-500 cursor-not-allowed" placeholder="Auto-generated" autocomplete="off">
+                        </div>
+                        <div id="s-edit-container" class="hidden">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Select Sprint to Extend</label>
+                            <div class="custom-dropdown w-full" id="dropdown-s-edit">
+                                <div class="dropdown-trigger w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 flex justify-between items-center !text-base !font-medium !text-gray-300 !normal-case" onclick="toggleDropdown(event, 's-edit')">
+                                    <span id="s-edit-label">Select Sprint</span>
+                                    <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 transition-transform duration-300"></i>
+                                </div>
+                                <div class="dropdown-menu !w-full" id="s-edit-options"></div>
+                                <input type="hidden" id="s-edit-name">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">End Date (Deadline)</label>
@@ -405,21 +416,15 @@ function injectSharedUI() {
                                 <input type="text" id="tag-input" placeholder="Press Enter to add..." autocomplete="off">
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Sprint</label>
-                                <div class="custom-dropdown w-full" id="dropdown-t-sprint">
-                                    <div class="dropdown-trigger w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 flex justify-between items-center !text-base !font-medium !text-gray-300 !normal-case" onclick="toggleDropdown(event, 't-sprint')">
-                                        <span id="t-sprint-label">Select Sprint</span>
-                                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 transition-transform duration-300"></i>
-                                    </div>
-                                    <div class="dropdown-menu !w-full" id="t-sprint-options"></div>
-                                    <input type="hidden" id="t-sprint">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Sprint</label>
+                            <div class="custom-dropdown w-full" id="dropdown-t-sprint">
+                                <div class="dropdown-trigger w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 flex justify-between items-center !text-base !font-medium !text-gray-300 !normal-case" onclick="toggleDropdown(event, 't-sprint')">
+                                    <span id="t-sprint-label">Select Sprint</span>
+                                    <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 transition-transform duration-300"></i>
                                 </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">End Date</label>
-                                <input type="date" id="t-end-date" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-accent-purple transition-all font-medium text-gray-300 [color-scheme:dark]">
+                                <div class="dropdown-menu !w-full" id="t-sprint-options"></div>
+                                <input type="hidden" id="t-sprint">
                             </div>
                         </div>
                         <div>
@@ -592,6 +597,79 @@ function updateMemberDropdown() {
     refreshIcons();
 }
 
+function updateTaskModalSprintDropdown() {
+    const label = document.getElementById('t-sprint-label');
+    const hiddenInput = document.getElementById('t-sprint');
+    const optionsGrid = document.getElementById('t-sprint-options');
+    if (!optionsGrid) return;
+
+    optionsGrid.innerHTML = '';
+    // Add scrollable class for longer lists
+    optionsGrid.classList.add('max-h-60', 'overflow-y-auto', 'custom-scrollbar');
+
+    // Add "None" option
+    const noneItem = document.createElement('div');
+    noneItem.className = `dropdown-item ${hiddenInput.value === '' ? 'selected' : ''}`;
+    noneItem.onclick = (e) => {
+        e.stopPropagation();
+        hiddenInput.value = '';
+        label.innerText = 'Select Sprint';
+        document.getElementById('dropdown-t-sprint').classList.remove('active');
+        updateTaskModalSprintDropdown(); // Refresh selection state
+    };
+    noneItem.innerHTML = `<span>None</span>`;
+    optionsGrid.appendChild(noneItem);
+
+    // Get unique sprint names from BOTH Tasks and Defined Sprints (Unify with dashboard logic)
+    const sprints = new Set();
+    Object.keys(currentSprints || {}).forEach(k => sprints.add(k));
+    Object.values(currentTasks || {}).forEach(t => {
+        if (t.sprintName) sprints.add(t.sprintName);
+    });
+
+    const sprintList = Array.from(sprints).sort((a, b) => {
+        const na = parseInt(a), nb = parseInt(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b));
+    });
+
+    sprintList.forEach(s => {
+        const item = document.createElement('div');
+        item.className = `dropdown-item ${hiddenInput.value === s ? 'selected' : ''}`;
+
+        // Find end date from currentSprints or fallback to searching tasks
+        let deadline = currentSprints[s]?.endDate;
+        if (!deadline) {
+            const taskWithDate = Object.values(currentTasks).find(t => t.sprintName === s && t.endDate);
+            if (taskWithDate) deadline = taskWithDate.endDate;
+        }
+
+        item.onclick = (e) => {
+            e.stopPropagation();
+            hiddenInput.value = s;
+            label.innerText = isNaN(parseInt(s)) ? s : `Sprint ${s}`;
+            document.getElementById('dropdown-t-sprint').classList.remove('active');
+
+            // Auto-fill end date from sprint if available
+            if (currentSprints[s] && currentSprints[s].endDate) {
+                // The task form hidden endDate will be handled on submit via currentSprints
+            }
+            updateTaskModalSprintDropdown(); // Refresh selection state
+        };
+        const displayLabel = isNaN(parseInt(s)) ? s : `Sprint ${s}`;
+        const dateSpan = deadline
+            ? `<span class="text-[9px] text-gray-500 ml-auto uppercase font-bold">${deadline}</span>`
+            : '';
+
+        item.innerHTML = `
+            <span>${displayLabel}</span>
+            ${dateSpan}
+        `;
+        optionsGrid.appendChild(item);
+    });
+    refreshIcons();
+}
+
 function handleTaskSubmit(e) {
     e.preventDefault();
     const titleVal = document.getElementById('t-title').value.trim();
@@ -602,19 +680,15 @@ function handleTaskSubmit(e) {
         return;
     }
 
+    const sprName = document.getElementById('t-sprint').value.trim();
     const data = {
         title: titleVal,
         subTasks: currentSubTasks,
         assignedTo: assignedToVal,
-        sprintName: document.getElementById('t-sprint').value.trim(),
-        endDate: document.getElementById('t-end-date').value,
+        sprintName: sprName,
+        endDate: (sprName && currentSprints[sprName]) ? currentSprints[sprName].endDate : '',
         updatedAt: firebase.database.ServerValue.TIMESTAMP
     };
-
-    // If sprint is selected and mission date is empty, inherit from sprint
-    if (data.sprintName && currentSprints[data.sprintName] && !data.endDate) {
-        data.endDate = currentSprints[data.sprintName].endDate;
-    }
 
     if (isTaskEdit) {
         const id = document.getElementById('task-id').value;
@@ -692,7 +766,8 @@ function handleMemberSubmit(e) {
 
 function handleSprintSubmit(e) {
     e.preventDefault();
-    const name = document.getElementById('s-name').value.trim();
+    const isEdit = !document.getElementById('s-edit-container').classList.contains('hidden');
+    const name = isEdit ? document.getElementById('s-edit-name').value : document.getElementById('s-name').value.trim();
     const endDate = document.getElementById('s-end-date').value;
 
     if (!name || !endDate) {
@@ -700,15 +775,72 @@ function handleSprintSubmit(e) {
         return;
     }
 
-    database.ref(`projects/${selectedProjId}/sprints/${name}`).set({
+    database.ref(`projects/${selectedProjId}/sprints/${name}`).update({
         endDate: endDate,
-        createdAt: firebase.database.ServerValue.TIMESTAMP
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
     })
         .then(() => {
             closeGenericModal();
-            showNotification(`Sprint ${name} established!`);
+            showNotification(isEdit ? `Sprint ${name} deadline extended!` : `Sprint ${name} established!`);
+            // Also update tasks if backend doesn't handle it
+            Object.keys(currentTasks).forEach(tid => {
+                const t = currentTasks[tid];
+                if (t.sprintName === name) {
+                    database.ref(`projects/${selectedProjId}/tasks/${tid}`).update({ endDate: endDate });
+                }
+            });
         })
-        .catch(err => showNotification("Error creating sprint: " + err.message, true));
+        .catch(err => showNotification("Error updating sprint: " + err.message, true));
+}
+
+function updateSprintEditDropdown() {
+    const label = document.getElementById('s-edit-label');
+    const hiddenInput = document.getElementById('s-edit-name');
+    const optionsGrid = document.getElementById('s-edit-options');
+    if (!optionsGrid) return;
+    optionsGrid.innerHTML = '';
+    optionsGrid.classList.add('max-h-60', 'overflow-y-auto', 'custom-scrollbar');
+
+    // Get unique sprint names from BOTH Tasks and Defined Sprints
+    const sprints = new Set();
+    Object.keys(currentSprints || {}).forEach(k => sprints.add(k));
+    Object.values(currentTasks || {}).forEach(t => {
+        if (t.sprintName) sprints.add(t.sprintName);
+    });
+
+    const sprintList = Array.from(sprints).sort((a, b) => {
+        const na = parseInt(a), nb = parseInt(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b));
+    });
+
+    sprintList.forEach(s => {
+        const item = document.createElement('div');
+        item.className = `dropdown-item ${hiddenInput.value === s ? 'selected' : ''}`;
+
+        // Find best possible deadline preview
+        let deadline = currentSprints[s]?.endDate;
+        if (!deadline) {
+            const taskWithDate = Object.values(currentTasks).find(t => t.sprintName === s && t.endDate);
+            if (taskWithDate) deadline = taskWithDate.endDate;
+        }
+
+        item.onclick = (e) => {
+            e.stopPropagation();
+            hiddenInput.value = s;
+            label.innerText = isNaN(parseInt(s)) ? s : `Sprint ${s}`;
+            document.getElementById('s-end-date').value = deadline || '';
+            document.getElementById('dropdown-s-edit').classList.remove('active');
+            updateSprintEditDropdown();
+        };
+
+        const displayLabel = isNaN(parseInt(s)) ? s : 'Sprint ' + s;
+        const dateSpan = deadline ? `<span class="text-[9px] text-gray-500 ml-auto uppercase font-bold">${deadline}</span>` : '';
+
+        item.innerHTML = `<span>${displayLabel}</span>${dateSpan}`;
+        optionsGrid.appendChild(item);
+    });
+    refreshIcons();
 }
 
 function openGenericModal(type, extra = null) {
@@ -766,7 +898,6 @@ function openGenericModal(type, extra = null) {
             currentSubTasks = [...(t.subTasks || [])];
             document.getElementById('t-member').value = t.assignedTo;
             document.getElementById('t-sprint').value = t.sprintName || '';
-            document.getElementById('t-end-date').value = t.endDate || '';
             const mName = currentMembers[t.assignedTo]?.name || t.assignedTo;
             document.getElementById('t-member-label').innerText = mName;
 
@@ -810,67 +941,68 @@ function openGenericModal(type, extra = null) {
         sub.innerText = `Adding to ${projName}`;
     } else if (type === 'sprint') {
         if (sprintForm) sprintForm.classList.remove('hidden');
-        title.innerText = "Add Sprint";
-        sub.innerText = "Set a project deadline";
+        const nameContainer = document.getElementById('s-name-container');
+        const editContainer = document.getElementById('s-edit-container');
+        const submitBtn = sprintForm.querySelector('button[type="submit"]');
 
-        sprintForm.reset();
-
-        // Auto-suggest next sprint number (Checking BOTH defined sprints and missions)
-        const nameInput = document.getElementById('s-name');
-        if (nameInput) {
-            const sprintKeys = new Set(Object.keys(currentSprints || {}));
-            // Also check tasks for any sprint names mentioned
-            Object.values(currentTasks || {}).forEach(t => {
-                if (t.sprintName) sprintKeys.add(t.sprintName);
-            });
-
-            let nextNum = 1;
-            if (sprintKeys.size > 0) {
-                const nums = Array.from(sprintKeys).map(k => parseInt(k)).filter(n => !isNaN(n));
-                if (nums.length > 0) {
-                    nextNum = Math.max(...nums) + 1;
-                }
+        if (extra === 'edit') {
+            title.innerText = "Extend Deadline";
+            sub.innerText = "Reschedule an existing sprint";
+            if (nameContainer) nameContainer.classList.add('hidden');
+            if (editContainer) editContainer.classList.remove('hidden');
+            if (submitBtn) {
+                submitBtn.innerText = "Update Deadline";
+                submitBtn.className = "w-full py-5 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 text-white";
             }
-            nameInput.value = nextNum;
+            document.getElementById('s-edit-name').value = '';
+            document.getElementById('s-edit-label').innerText = 'Select Sprint';
+            updateSprintEditDropdown();
+        } else {
+            title.innerText = "Add Sprint";
+            sub.innerText = "Set a project deadline";
+            if (nameContainer) nameContainer.classList.remove('hidden');
+            if (editContainer) editContainer.classList.add('hidden');
+            if (submitBtn) {
+                submitBtn.innerText = "Create Sprint";
+                submitBtn.className = "w-full py-5 bg-cyan-500 hover:bg-cyan-600 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-cyan-500/20 text-white";
+            }
+            sprintForm.reset();
+
+            // Auto-suggest logic
+            const nameInput = document.getElementById('s-name');
+            if (nameInput) {
+                const sprintKeys = new Set(Object.keys(currentSprints || {}));
+                Object.values(currentTasks || {}).forEach(t => { if (t.sprintName) sprintKeys.add(t.sprintName); });
+                let nextNum = 1;
+                if (sprintKeys.size > 0) {
+                    const nums = Array.from(sprintKeys).map(k => parseInt(k)).filter(n => !isNaN(n));
+                    if (nums.length > 0) nextNum = Math.max(...nums) + 1;
+                }
+                nameInput.value = nextNum;
+            }
         }
 
-        // Restrict Date Picker (Min date = Previous Sprint's End Date + 1 Day, or Today)
+        // Shared Date Logic
         const dateInput = document.getElementById('s-end-date');
-        if (dateInput) {
-            let minDateObj = new Date(); // Default to today
-
-            // Gather all known end dates from both defined Sprints and existing Missions
+        if (dateInput && extra !== 'edit') {
+            let minDateObj = new Date();
             const existingDatesSet = new Set();
-            Object.values(currentSprints || {}).forEach(s => {
-                if (s.endDate) existingDatesSet.add(s.endDate);
-            });
-            Object.values(currentTasks || {}).forEach(t => {
-                if (t.sprintName && t.endDate) existingDatesSet.add(t.endDate);
-            });
-
+            Object.values(currentSprints || {}).forEach(s => { if (s.endDate) existingDatesSet.add(s.endDate); });
+            Object.values(currentTasks || {}).forEach(t => { if (t.sprintName && t.endDate) existingDatesSet.add(t.endDate); });
             const existingDates = Array.from(existingDatesSet);
-
             if (existingDates.length > 0) {
-                // Find the absolute latest end date among all records
                 const latestDateString = existingDates.reduce((a, b) => new Date(a) > new Date(b) ? a : b);
-
-                // Calculate the DAY AFTER the latest sprint ends
                 const latestDateObj = new Date(latestDateString);
                 latestDateObj.setDate(latestDateObj.getDate() + 1);
-
-                // Only use this future date if it's actually after today
-                if (latestDateObj > minDateObj) {
-                    minDateObj = latestDateObj;
-                }
+                if (latestDateObj > minDateObj) minDateObj = latestDateObj;
             }
-
-            // Format to YYYY-MM-DD for the input 
             const yyyy = minDateObj.getFullYear();
             const mm = String(minDateObj.getMonth() + 1).padStart(2, '0');
             const dd = String(minDateObj.getDate()).padStart(2, '0');
-
             dateInput.min = `${yyyy}-${mm}-${dd}`;
-            dateInput.value = `${yyyy}-${mm}-${dd}`; // Auto-select the next available valid day
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        } else if (dateInput) {
+            dateInput.min = ""; // No min restriction for editing/extending
         }
     }
 

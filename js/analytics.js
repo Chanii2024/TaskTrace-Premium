@@ -1,6 +1,7 @@
 // Use shared state from common.js where applicable
 // Only declare unique local state here
 let allTasks = {};
+let selectedSprint = localStorage.getItem('tt_sprint') || 'All';
 
 function getOrdinal(n) {
     const s = ["th", "st", "nd", "rd"], v = n % 100;
@@ -52,6 +53,13 @@ function initAnalytics() {
         checkAndRefresh();
         hideLoader();
     });
+
+    // 4. Real-time listener for sprints
+    database.ref(`projects/${selectedProjId}/sprints`).on('value', snap => {
+        currentSprints = snap.val() || {};
+        checkAndRefresh();
+        hideLoader();
+    });
 }
 
 function checkAndRefresh() {
@@ -62,36 +70,97 @@ function checkAndRefresh() {
 }
 
 function populateSprintSelector() {
-    const selector = document.getElementById('sprint-selector');
+    const menu = document.getElementById('sprint-menu');
+    const text = document.getElementById('selected-sprint-text');
+    if (!menu) return;
+
     const sprintSet = new Set();
 
+    // Add explicitly defined sprints
+    Object.keys(currentSprints || {}).forEach(k => sprintSet.add(k));
+
+    // Add sprints mentioned in tasks
     Object.values(allTasks).forEach(t => {
         if (t.sprintName) sprintSet.add(t.sprintName);
     });
 
-    const sortedSprints = Array.from(sprintSet).sort((a, b) => parseInt(a) - parseInt(b));
+    const sprintList = Array.from(sprintSet).sort((a, b) => {
+        const na = parseInt(a), nb = parseInt(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b));
+    });
 
-    if (sortedSprints.length === 0) {
-        selector.innerHTML = '<option value="">No Sprints</option>';
+    if (sprintList.length === 0) {
+        menu.innerHTML = '<p class="text-[10px] font-black uppercase text-gray-500 text-center py-4">No Sprints</p>';
+        text.innerText = 'No Sprints';
         renderEmptyState();
         return;
     }
 
-    const currentSelection = selector.value;
-    selector.innerHTML = sortedSprints.map(s => {
+    let menuHTML = `
+        <div class="dropdown-item group/item ${selectedSprint === 'All' ? 'selected' : ''}" onclick="selectSprint('All')">
+            <div class="flex items-center">
+                <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover/item:bg-accent-purple/20 transition-colors">
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-gray-500 group-hover/item:text-accent-purple"></i>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider">All Missions</span>
+            </div>
+            ${selectedSprint === 'All' ? '<i data-lucide="check" class="w-3.5 h-3.5 text-accent-purple"></i>' : ''}
+        </div>
+        <div class="h-[1px] bg-white/5 my-2 mx-2"></div>
+    `;
+
+    menuHTML += sprintList.map(s => {
         const num = parseInt(s);
         const label = !isNaN(num) ? `${num}${getOrdinal(num)} Sprint` : s;
-        return `<option value="${s}" ${s === currentSelection ? 'selected' : ''}>${label}</option>`;
+        return `
+            <div class="dropdown-item group/item ${s === selectedSprint ? 'selected' : ''}" onclick="selectSprint('${s}')">
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover/item:bg-cyan-500/20 transition-colors">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-gray-500 group-hover/item:text-cyan-400"></i>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider">${label}</span>
+                </div>
+                ${s === selectedSprint ? '<i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i>' : ''}
+            </div>
+        `;
     }).join('');
 
+    menu.innerHTML = menuHTML;
+
+    if (selectedSprint === 'All') {
+        text.innerText = 'All Missions';
+    } else {
+        const activeNum = parseInt(selectedSprint);
+        text.innerText = !isNaN(activeNum) ? `${activeNum}${getOrdinal(activeNum)} Sprint` : selectedSprint;
+    }
+
+    refreshIcons();
     updateAnalytics();
 }
 
-function updateAnalytics() {
-    const sprintName = document.getElementById('sprint-selector').value;
-    if (!sprintName) return;
+function toggleSprintDropdown(e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById('sprint-selector-dropdown');
+    if (dropdown) dropdown.classList.toggle('active');
+}
 
-    const sprintTasks = Object.values(allTasks).filter(t => t.sprintName === sprintName);
+function selectSprint(sprint) {
+    selectedSprint = sprint;
+    localStorage.setItem('tt_sprint', sprint);
+    const dropdown = document.getElementById('sprint-selector-dropdown');
+    if (dropdown) dropdown.classList.remove('active');
+
+    populateSprintSelector();
+}
+
+function updateAnalytics() {
+    if (!selectedSprint) return;
+
+    // Filter tasks based on selected sprint
+    const sprintTasks = selectedSprint === 'All'
+        ? Object.values(allTasks)
+        : Object.values(allTasks).filter(t => t.sprintName === selectedSprint);
     const total = sprintTasks.length;
     const done = sprintTasks.filter(t => t.status === 'Done').length;
     const velocity = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -326,5 +395,11 @@ function animateValue(id, start, end, duration) {
     };
     window.requestAnimationFrame(step);
 }
+
+// Handle click outside to close dropdown
+document.addEventListener('click', () => {
+    const dropdown = document.getElementById('sprint-selector-dropdown');
+    if (dropdown) dropdown.classList.remove('active');
+});
 
 window.onload = initAnalytics;

@@ -38,22 +38,23 @@
       <div
         class="w-full max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between mb-12 px-4 sm:px-6 gap-6">
         <div class="text-left">
-          <h2 class="text-5xl font-black tracking-tighter mb-2">Projects</h2>
-          <p class="text-gray-500 font-medium italic">Select a workspace to begin tracking missions</p>
+          <h2 class="text-4xl md:text-5xl font-black tracking-tighter mb-2">Projects</h2>
+          <p class="text-gray-500 text-sm md:text-base font-medium italic">Select a workspace to begin tracking missions
+          </p>
         </div>
 
         <button onclick="openGenericModal('project')"
-          class="group flex items-center space-x-3 px-8 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 shadow-xl shadow-black/20">
+          class="group flex items-center justify-center space-x-3 px-8 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 shadow-xl shadow-black/20 w-fit">
           <div
             class="w-6 h-6 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500 group-hover:scale-110 transition-transform">
             <i data-lucide="plus" class="w-4 h-4"></i>
           </div>
-          <span class="font-black uppercase tracking-widest text-[10px]">Initiate New Project</span>
+          <span class="font-black uppercase tracking-widest text-[10px]">Initiate Project</span>
         </button>
       </div>
 
       <div id="project-grid"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl mx-auto px-4 sm:px-6 items-stretch">
+        class="grid grid-cols-3 gap-3 md:gap-8 w-full max-w-7xl mx-auto px-2 md:px-6 items-stretch">
         <!-- Projects injected here -->
       </div>
     </div>

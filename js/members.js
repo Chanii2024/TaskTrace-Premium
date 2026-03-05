@@ -32,10 +32,16 @@ function initMembersApp() {
     // We also listen to Sprints and Tasks to populate data for the 'Add Sprint' modal logic
     database.ref(`projects/${selectedProjId}/sprints`).on('value', snap => {
         currentSprints = snap.val() || {};
+        if (typeof updateTaskModalSprintDropdown === 'function') {
+            updateTaskModalSprintDropdown();
+        }
     });
 
     database.ref(`projects/${selectedProjId}/tasks`).on('value', snap => {
         currentTasks = snap.val() || {};
+        if (typeof updateTaskModalSprintDropdown === 'function') {
+            updateTaskModalSprintDropdown();
+        }
     });
 }
 
@@ -63,14 +69,14 @@ function renderMembers() {
         const m = currentMembers[id];
         if (!m) return;
         const card = document.createElement('div');
-        card.className = "glass p-8 rounded-[32px] flex flex-col items-center h-full hover-card transition-all duration-500 cursor-pointer group";
+        card.className = "glass p-6 md:p-8 rounded-2xl md:rounded-[32px] flex flex-col items-center h-full hover-card transition-all duration-500 cursor-pointer group";
         card.onclick = () => selectMember(id, m.name);
         card.innerHTML = `
-            <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-5 group-hover:bg-accent-purple/20 transition-all">
-                <i data-lucide="user" class="w-8 h-8 text-gray-400 group-hover:text-accent-purple"></i>
+            <div class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center mb-4 md:mb-5 group-hover:bg-accent-purple/20 transition-all">
+                <i data-lucide="user" class="w-6 md:w-8 h-6 md:h-8 text-gray-400 group-hover:text-accent-purple"></i>
             </div>
-            <h3 class="text-xl font-bold">${m.name}</h3>
-            <p class="text-[9px] uppercase font-black tracking-widest text-gray-500 mt-1">${m.role}</p>
+            <h3 class="text-lg md:text-xl font-bold">${m.name}</h3>
+            <p class="text-[8px] md:text-[9px] uppercase font-black tracking-widest text-gray-500 mt-1">${m.role}</p>
         `;
         grid.appendChild(card);
     });

@@ -49,25 +49,25 @@ function renderProjects() {
         if (!p) return;
         const card = document.createElement('div');
         card.innerHTML = `
-            <div class="absolute top-6 right-6 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button onclick="event.stopPropagation(); openGenericModal('project', '${id}')" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-cyan-400 transition-all">
-                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+            <div class="absolute top-2 md:top-6 right-2 md:right-6 flex items-center space-x-1 md:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <button onclick="event.stopPropagation(); openGenericModal('project', '${id}')" class="p-1 md:p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-cyan-400 transition-all">
+                    <i data-lucide="edit-3" class="w-3 md:w-4 h-3 md:h-4"></i>
                  </button>
-                 <button onclick="event.stopPropagation(); deleteProject('${id}')" class="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-all">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                 <button onclick="event.stopPropagation(); deleteProject('${id}')" class="p-1 md:p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-all">
+                    <i data-lucide="trash-2" class="w-3 md:w-4 h-3 md:h-4"></i>
                  </button>
             </div>
-            <div class="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform" 
+            <div class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-xl group-hover:scale-110 transition-transform" 
                  style="background: linear-gradient(135deg, ${p.colorFrom || '#a855f7'}, ${p.colorTo || '#7e22ce'})">
-                <i data-lucide="${p.icon || 'layers'}" class="w-10 h-10 text-white"></i>
+                <i data-lucide="${p.icon || 'layers'}" class="w-6 md:w-10 h-6 md:h-10 text-white"></i>
             </div>
-            <h3 class="text-2xl font-black tracking-tight">${p.name}</h3>
-            <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-600 mt-2">
-                ${Object.keys(p.tasks || {}).length} ${Object.keys(p.tasks || {}).length === 1 ? 'TASK' : 'TASKS'} • 
-                ${Object.keys(p.members || {}).length} ${Object.keys(p.members || {}).length === 1 ? 'MEMBER' : 'MEMBERS'}
+            <h3 class="text-xs md:text-2xl font-black tracking-tight text-center truncate w-full">${p.name}</h3>
+            <p class="text-[8px] md:text-[10px] uppercase font-bold tracking-[0.1em] md:tracking-[0.2em] text-gray-600 mt-1 md:mt-2 text-center">
+                ${Object.keys(p.tasks || {}).length}<span class="hidden md:inline"> ${Object.keys(p.tasks || {}).length === 1 ? 'TASK' : 'TASKS'}</span> • 
+                ${Object.keys(p.members || {}).length}<span class="hidden md:inline"> ${Object.keys(p.members || {}).length === 1 ? 'MEMBER' : 'MEMBERS'}</span>
             </p>
         `;
-        card.className = "glass p-10 rounded-[32px] flex flex-col items-center h-full hover-card transition-all duration-500 cursor-pointer group relative";
+        card.className = "glass p-4 md:p-10 rounded-2xl md:rounded-[32px] flex flex-col items-center h-full hover-card transition-all duration-500 cursor-pointer group relative overflow-hidden";
         card.onclick = () => selectProject(id, p.name);
         grid.appendChild(card);
     });
